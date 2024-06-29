@@ -28,9 +28,9 @@ def eh_rotating_bh(M, a, theta, plotting=False):
     
     # rho = np.sqrt(r**2 + a **2)
     r_plus = r + np.sqrt(r**2 - a**2)
-    print(f"Radius of the outer event horizon: {r_plus} m")
+    print(f"Radius of the outer event horizon: {r_plus/1000} km")
     r_minus = r - np.sqrt(r**2 - a**2)
-    print(f"Radius of the inner event horizon: {r_minus} m")
+    print(f"Radius of the inner event horizon: {r_minus/1000} km")
     
     if plotting:
         x_plus = r_plus * sin_theta
@@ -41,6 +41,8 @@ def eh_rotating_bh(M, a, theta, plotting=False):
         coord = x_plus, y_plus, x_minus, y_minus
         
         return coord
+    
+    return None
     
     
 def plot_ev_rotating_bh(coord: tuple):
@@ -54,21 +56,47 @@ def plot_ev_rotating_bh(coord: tuple):
     plt.show()
 
 
-def ev_non_rotating_bh(M, a):
-    return
+def ev_non_rotating_bh(M, plotting=False):
+    '''
+    Calculate the event horizon of a black hole given its mass M.
+    '''
+    M = M_s * M
+    r = G * M / c**2
+    print(f"Swartzchild radius: {r/1000} km")
+
+    if plotting:
+        x = r * np.cos(np.linspace(0, 2 * np.pi, 1000))
+        y = r * np.sin(np.linspace(0, 2 * np.pi, 1000))
+        return x, y
+    
+    return None
 
 
 def plot_ev_bh(coord: tuple):
+    x, y = coord
+    plt.plot(x, y, 'r', label='Event Horizon')
+    plt.xlabel('x')
+    plt.ylabel('y')
+    plt.tile('Event Horizon of a Black Hole')
+    plt.legend()
+    
     return
 
 
-def ev():
-    M = 4.297e6  # This is the 'M' of Sagittarius A* in the Milky Way
-    a = 0.99616  # This is the 'a' of Sagittarius A* in the Milky Way
-    theta = np.linspace(0, 2 * np.pi, 1000)
-    coord = eh_rotating_bh(M, a, theta, True)
-    plot_ev_rotating_bh(coord)
+def event_horizon(spin=False, plotting=False):
+    if spin:
+        M = 4.297e6  # This is the 'M' of Sagittarius A* in the Milky Way
+        a = 0.99616  # This is the 'a' of Sagittarius A* in the Milky Way
+        theta = np.linspace(0, 2 * np.pi, 1000)
+        coord = eh_rotating_bh(M, a, theta, plotting)
+        if coord is not None:
+            plot_ev_rotating_bh(coord)
     
+    else:
+        M = 4.297e6
+        coord = ev_non_rotating_bh(M, plotting)
+        if coord is not None:
+            plot_ev_bh(coord)
 
 if __name__ == "__main__":
-    ev()
+    event_horizon()
