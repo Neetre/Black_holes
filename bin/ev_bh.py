@@ -14,7 +14,7 @@ c = 299792458
 M_s = 1.98847e30
 
 
-def eh_rotating_bh(M, a, theta, plotting=False):
+def eh_rotating_bh(M, a, theta, rad, plotting=False):
     '''
     Calculate the event horizon of a black hole given its mass M, its spin a
     and the angle theta.
@@ -31,6 +31,9 @@ def eh_rotating_bh(M, a, theta, plotting=False):
     print(f"Radius of the outer event horizon: {r_plus/1000} km")
     r_minus = r - np.sqrt(r**2 - a**2)
     print(f"Radius of the inner event horizon: {r_minus/1000} km")
+    
+    if rad:
+        return r_plus, r_minus
     
     if plotting:
         x_plus = r_plus * sin_theta
