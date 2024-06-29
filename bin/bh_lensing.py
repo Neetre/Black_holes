@@ -80,7 +80,7 @@ def plot_image(coord):
 
 
 
-def main():
+def lensing_bh():
     theta_E = einstein_radius(M, DL, DS)
     theta = np.pi / 4
     a = 0.5
@@ -91,4 +91,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    lensing_bh()

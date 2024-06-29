@@ -103,3 +103,9 @@ def event_horizon(spin=False, rad=False, plotting=False):
 
 if __name__ == "__main__":
     event_horizon()
+    
+    
+'''
+Possible improvements:
+- Add a function to calculate the mass of a black hole given its event horizon radius
+'''
