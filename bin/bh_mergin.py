@@ -8,6 +8,7 @@ Neetre 2024
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
+from matplotlib import animation
 
 
 # Const
@@ -89,5 +90,7 @@ def animate(i):
 
 
 anim = FuncAnimation(fig, animate, frames=len(t), interval=50, blit=True)
+anim.save('../data/black_hole_merger.mp4', writer='ffmpeg', fps=30)
+anim.save('../data/black_hole_merger.gif', writer='pillow', fps=30)
 plt.tight_layout()
 plt.show()
