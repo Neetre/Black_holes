@@ -60,10 +60,16 @@ def plot_image(coord):
     by a rotating black hole
     '''
     
-    x_image, y_image, x_plus, y_plus, x_minus, y_minus = coord
+    x_image, y_image, r_plus, y_plus, r_minus, y_minus = coord
+    
+    # Event Horizon plots
+    x_plus = r_plus * np.sin(np.linspace(0, 2 * np.pi, 1000))
+    y_plus = r_plus * np.cos(np.linspace(0, 2 * np.pi, 1000))
+    x_minus = r_minus * np.sin(np.linspace(0, 2 * np.pi, 1000))
+    y_minus = r_minus * np.cos(np.linspace(0, 2 * np.pi, 1000))
     
     plt.plot(x_plus, y_plus, 'r', label='Outer EV')
-    plt.plot(x_minus, y_minus, 'r', label='Inner EV')
+    plt.plot(x_minus, y_minus, 'k', label='Inner EV')
     plt.plot(x_image, y_image, 'bo', label='Image')
     plt.plot(0, 0, 'yo', label='Black Hole')
     plt.xlabel('x')
@@ -71,6 +77,7 @@ def plot_image(coord):
     plt.title('Gravitational Lensing by a Rotating Black Hole')
     plt.legend()
     plt.show()
+
 
 
 def main():

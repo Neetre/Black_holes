@@ -86,12 +86,12 @@ def plot_ev_bh(coord: tuple):
     return
 
 
-def event_horizon(spin=False, plotting=False):
+def event_horizon(spin=False, rad=False, plotting=False):
     if spin:
         M = 4.297e6  # This is the 'M' of Sagittarius A* in the Milky Way
         a = 0.99616  # This is the 'a' of Sagittarius A* in the Milky Way
         theta = np.linspace(0, 2 * np.pi, 1000)
-        coord = eh_rotating_bh(M, a, theta, plotting)
+        coord = eh_rotating_bh(M, a, theta, rad, plotting)
         if coord is not None:
             plot_ev_rotating_bh(coord)
     
