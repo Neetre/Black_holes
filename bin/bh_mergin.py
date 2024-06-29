@@ -51,6 +51,17 @@ for i in range(len(t)):
 
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
 
+# Merge
+scatter1, = ax1.plot([], [], 'bo', markersize=10, label='Black Hole 1')
+scatter2, = ax1.plot([], [], 'ro', markersize=8, label='Black Hole 2')
+ax1.set_xlim(-1.2*initial_separation, 1.2*initial_separation)
+ax1.set_ylim(-1.2*initial_separation, 1.2*initial_separation)
+ax1.set_aspect('equal')
+ax1.set_title('Black Hole Merger')
+ax1.legend()
+
+
+# Waves
 line_plus, = ax2.plot([], [], 'b-', label='h_plus')
 line_cross, = ax2.plot([], [], 'r-', label='h_cross')
 ax2.set_xlim(0, t_max)
@@ -60,5 +71,23 @@ ax2.set_ylabel('Strain')
 ax2.set_title('Gravitational Waves')
 ax2.legend()
 
+
+def animate(i):
+    theta = orbital_freq(r[i]) * t[i]
+    x1 = r[i] * np.cos(theta) * M2/ M_total
+    y1 = r[i] * np.sin(theta) * M2/ M_total
+    x2 = -r[i] * np.cos(theta) * M1/ M_total
+    y2 = -r[i] * np.sin(theta) * M1/ M_total
+    
+    scatter1.set_data([x1], [y1])
+    scatter2.set_data([x2], [y2])
+    
+    line_plus.set_data(t[:i], h_plus[:i])
+    line_cross.set_data(t[:i], h_cross[:i])
+    
+    return scatter1, scatter2, line_plus, line_cross
+
+
+anim = FuncAnimation(fig, animate, frames=len(t), interval=50, blit=True)
 plt.tight_layout()
 plt.show()
