@@ -17,12 +17,12 @@ c = 299792458
 M_s = 1.989e30
 
 # BH param
-M1 = 30 * M_s
+M1 = 21 * M_s
 M2 = 20 * M_s
 initial_separation = 1e9 # m
 
 # Tide param
-t_max = 100
+t_max = 200
 dt = 0.1
 
 M_total = M1 + M2
@@ -90,7 +90,7 @@ def animate(i):
 
 
 anim = FuncAnimation(fig, animate, frames=len(t), interval=50, blit=True)
-anim.save('../data/black_hole_merger.mp4', writer='ffmpeg', fps=30)
-anim.save('../data/black_hole_merger.gif', writer='pillow', fps=30)
+anim.save('../data/black_hole_merger.mp4', writer='ffmpeg', fps=60)
+anim.save('../data/black_hole_merger.gif', writer='pillow', fps=60)
 plt.tight_layout()
 plt.show()
