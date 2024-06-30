@@ -64,6 +64,29 @@ def update_rad(rho, T, r, dm):
     return P_rad, L_rad
 
 
+def update_neu(rho, T, Y_e, r):
+    # Stephen Hawking my father
+    Gamma_ec = 1e-10 * rho * Y_e * T**5
+    Gamma_pc = 1e-10 * rho * (1 - Y_e) * T**5
+    Gamma_pp = 1e-10 * rho * T**4
+    
+    dY_edt = (Gamma_pc - Gamma_ec) / rho
+    Y_e += dY_edt * dt
+    
+    L_nu = 4 * np.pi * r**2 * (Gamma_ec + Gamma_pc + 2 * Gamma_pp) * (4 * G_F * 1.67e-27 * T**2)
+
+    return Y_e, L_nu
+
+
+def update_rotation_magnetic(r, rho, omega, R):
+    omega_r = omega * R**2 / r**2
+    P_rot = 1/3 * rho * (omega_r * r)**2
+    
+    B = B_0 * (R / r)**2
+    P_mag = B**2 / (8 * np.pi)
+    
+    return P_rot, P_mag
+
 
 bh_formed = False
 bh_time = 0
@@ -71,25 +94,16 @@ bh_time = 0
 
 
 for i in range(1, len(t)):
-    if not bh_formed:
-        dm = mass_loss_rate(mass[i-1], radius[i-1], temp[i-1]) * dt
-        mass[i] = max(mass[i-1] - dm, 0)  # Ensure mass doesn't become negative
-        radius[i] = update_rad(mass[i], radius[i-1])
-        temp[i] = update_temp(mass[i], radius[i])
+    M = np.sum(mass * (radius[i-1, 1] - radius[i-1, 0]))
+    R = radius[i-1, 1]
+    
+    for j in range(1, N):
+        y_0 = [radius[i-1, j], P[i-1, j]]
+        sol = odeint(TOV_equations, y_0, [mass[j-1], mass[j]], args=(M, R))
+        radius[i, j], P[i, j] = sol[-1]
         
-        # Check for black hole formation
-        schwarzschild_radius = 2 * G * mass[i] / (c**2)
-        if radius[i] <= schwarzschild_radius:
-            bh_formed = True
-            bh_time = t[i]
-            print(f"Black hole formed at t = {bh_time:.2f}")
-    else:
-        mass[i] = mass[i-1]
-        radius[i] = schwarzschild_radius
-        temp[i] = 0
-        
-    if i % (len(t) // 10) == 0:
-        print(f"Simulation progress: {i / len(t) * 100:.1f}%")
+    rho[i] = P[i] / (G * M**2 / (8 * np.pi * R**4))
+    temp[i] = (3 * P[i] / a_rad) ** (1/4)
 
 
 if not bh_formed:
