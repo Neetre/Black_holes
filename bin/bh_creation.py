@@ -7,7 +7,10 @@ Neetre 2024
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
-from scipy.integrate import odeint
+from scipy.integrate import solve_ivp
+import warnings
+
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 
 
@@ -48,12 +51,17 @@ rho[0] = initial_mass / (4/3 * np.pi * initial_rad**3) * (1 - (radius[0]/initial
 temp[0] = initial_temp * (1 - 0.9 * (radius[0]/initial_rad))
 P[0] = G * initial_mass**2 / (8 * np.pi * initial_rad**4) * (1 - (radius[0]/initial_rad)**2)
 
-
-def TOV_equations(y, m_r, M, R):
+count = 0
+def TOV_equations(m_r, y, M, R):
+    global count
     r, P = y
-    rho = P / (G * M**2 / (8 * np.pi * R**4))  # Simplified EOS
+    if r <= 0 or P <= 0:
+        return [0, 0]
+    rho = max(P / (G * M**2 / (8 * np.pi * R**4)), 1e-10)
     drdm = 1 / (4 * np.pi * rho * r**2)
     dPdm = -(G * m_r * rho / r**2) * (1 + P / (rho * c**2)) * (1 + 4 * np.pi * r**3 * P / (m_r * c**2)) / (1 - 2 * G * m_r / (r * c**2))
+    print(count)
+    count += 1
     return [drdm, dPdm]
 
 
@@ -87,67 +95,62 @@ def update_rotation_magnetic(r, rho, omega, R):
     
     return P_rot, P_mag
 
-
-bh_formed = False
-bh_time = 0
-
-
-
+count = 0
 for i in range(1, len(t)):
     M = np.sum(mass * (radius[i-1, 1] - radius[i-1, 0]))
-    R = radius[i-1, 1]
+    R = radius[i-1, -1]
     
     for j in range(1, N):
-        y_0 = [radius[i-1, j], P[i-1, j]]
-        sol = odeint(TOV_equations, y_0, [mass[j-1], mass[j]], args=(M, R))
-        radius[i, j], P[i, j] = sol[-1]
-        
-    rho[i] = P[i] / (G * M**2 / (8 * np.pi * R**4))
-    temp[i] = (3 * P[i] / a_rad) ** (1/4)
-
-
-if not bh_formed:
-    print("Black hole did not form within the simulation time.")
-else:
-    print(f"Final black hole mass: {mass[-1]/M_s:.2f} solar masses")
-    print(f"Final black hole radius: {radius[-1]:.2e} meters")
-
-# Print final state regardless of black hole formation
-print(f"Final mass: {mass[-1]/M_s:.2f} solar masses")
-print(f"Final radius: {radius[-1]/R_s:.2f} solar radii")
-print(f"Final temperature: {temp[-1]:.2f} K")
+        sol = solve_ivp(TOV_equations, [mass[j-1], mass[j]], [radius[i-1, j], P[i-1, j]], args=(M, R))
+        radius[i, j], P[i, j] = sol.y[:, -1]
+    
+    rho[i] = np.maximum(P[i] / (G * M**2 / (8 * np.pi * R**4)), 1e-10)
+    temp[i] = np.maximum((3 * P[i] / a_rad) ** (1/4), 1)
+    
+    P_rad, L_rad = update_rad(rho[i], temp[i], radius[i], mass[1]-mass[0])
+    Y_e[i], L_nu = update_neu(rho[i], temp[i], Y_e[i-1], radius[i])
+    P_rot, P_mag = update_rotation_magnetic(radius[i], rho[i], omega, R)
+    
+    P[i] += P_rad + P_rot + P_mag
+    
+    if np.min(radius[i]) <= 2 * G * M / c**2:
+        print(f"Black Hole formed at t= {t[i]:.2f}")
+        break
+    print(count)
+    count += 1
 
 
 # plotting time
-fig, (ax1, ax2, ax3) = plt.subplots(3, 1, figsize=(10, 15))
-
-line1, = ax1.plot([], [], 'r-', label='Mass')
-ax1.set_xlim(0, t_max)
-ax1.set_ylim(0, 1.1 * initial_mass)
-ax1.set_ylabel('Mass (Kg)')
-ax1.legend()
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
 
 
-line2, = ax2.plot([], [], 'b-', label='Radius')
-ax2.set_xlim(0, t_max)
-ax2.set_ylim(0, 1.1 * initial_rad)
-ax2.set_ylabel('Radius (m)')
-ax2.legend()
-
-
-line3, = ax3.plot([], [], 'g-', label='Temperature')
-ax3.set_xlim(0, t_max)
-ax3.set_ylim(0, 1.1 * initial_temp)
-ax3.set_xlabel("Time")
-ax3.set_ylabel("Temperature (k)")
-ax3.legend()
-
-
-def animate(i):
-    line1.set_data(t[:i], mass[:i])
-    line2.set_data(t[:i], radius[:i])
-    line3.set_data(t[:i], temp[:i])
-    return line1, line2, line3
+def animate(frame):
+    ax1.clear()
+    ax2.clear()
+    
+    r = radius[frame]
+    theta = np.linspace(0, 2*np.pi, 100)
+    R, Theta = np.meshgrid(r, theta)
+    X, Y = R * np.cos(Theta), R * np.sin(Theta)
+    
+    im = ax1.pcolormesh(X, Y, np.log10(rho[frame][np.newaxis, :]), cmap='viridis', shading='auto')
+    ax1.set_xlim(-R_s, R_s)
+    ax1.set_ylim(-R_s, R_s)
+    ax1.set_aspect('equal')
+    ax1.set_title(f't = {t[frame]:.2f} s')
+    plt.colorbar(im, ax=ax1, label='log(ρ) [kg/m³]')
+    
+    ax2.plot(r / R_s, P[frame], label='Total')
+    ax2.plot(r / R_s, P_rad, label='Radiation')
+    ax2.plot(r / R_s, P_rot, label='Rotation')
+    ax2.plot(r / R_s, P_mag, label='Magnetic')
+    ax2.set_xlabel('r/R_sun')
+    ax2.set_ylabel('Pressure [Pa]')
+    ax2.set_yscale('log')
+    ax2.set_title('Pressure Components')
+    ax2.legend()
+    
+    return ax1, ax2
 
 
 anim = FuncAnimation(fig, animate, frames=len(t), interval=50, blit=True)
