@@ -153,8 +153,13 @@ def animate(frame):
     return ax1, ax2
 
 
-anim = FuncAnimation(fig, animate, frames=len(t), interval=50, blit=True)
-plt.tight_layout()
-plt.show()
+def create_bh():
+    anim = FuncAnimation(fig, animate, frames=len(t), interval=50, blit=True)
+    plt.tight_layout()
+    plt.show()
 
-anim.save('../data/black_hole_formation.mp4', writer='ffmpeg', fps=30)
+    anim.save('../data/black_hole_formation.mp4', writer='ffmpeg', fps=30)
+    
+
+if __name__ == "__main__":
+    create_bh()

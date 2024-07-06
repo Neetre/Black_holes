@@ -89,8 +89,13 @@ def animate(i):
     return scatter1, scatter2, line_plus, line_cross
 
 
-anim = FuncAnimation(fig, animate, frames=len(t), interval=50, blit=True)
-anim.save('../data/black_hole_merger.mp4', writer='ffmpeg', fps=60)
-anim.save('../data/black_hole_merger.gif', writer='pillow', fps=60)
-plt.tight_layout()
-plt.show()
+def merge_bh():
+    anim = FuncAnimation(fig, animate, frames=len(t), interval=50, blit=True)
+    anim.save('../data/black_hole_merger.mp4', writer='ffmpeg', fps=60)
+    anim.save('../data/black_hole_merger.gif', writer='pillow', fps=60)
+    plt.tight_layout()
+    plt.show()
+    
+
+if __name__ == "__main__":
+    merge_bh()
