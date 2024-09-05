@@ -22,7 +22,7 @@ M2 = 20 * M_s
 initial_separation = 1e9 # m
 
 # Tide param
-t_max = 200
+t_max = 100
 dt = 0.1
 
 M_total = M1 + M2

@@ -40,6 +40,9 @@ These scripts will install required dependencies, and build a virtual environmen
 
     The `--help` flag displays available command-line arguments.
 
+Here is an example of the black hole merger simulation:
+![bh_merger](/data/black_hole_merger.gif)
+
 ## Author
 
 Neetre
